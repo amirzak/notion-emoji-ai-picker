@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Notion Emoji Logger",
+  "version": "1.0",
+  "description": "Simple extension that logs when the emoji selector is clicked in Notion",
+  "permissions": [
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://*.notion.so/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.notion.so/*"],
+      "js": ["content.js"]
+    }
+  ]
+} 
