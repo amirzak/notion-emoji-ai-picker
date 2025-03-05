@@ -1,18 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "Notion Emoji Logger",
+  "name": "Notion Emoji Picker",
   "version": "1.0",
-  "description": "Simple extension that logs when the emoji selector is clicked in Notion",
+  "description": "Quick emoji picker for Notion pages",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "scripting",
+    "tabs"
   ],
   "host_permissions": [
     "https://*.notion.so/*"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Notion Emoji Picker"
+  },
   "content_scripts": [
     {
       "matches": ["https://*.notion.so/*"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
 } 
