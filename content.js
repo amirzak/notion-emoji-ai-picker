@@ -1,3 +1,20 @@
+// Function to insert emoji into Notion
+function insertEmoji(emoji) {
+    console.log('Inserting emoji:', emoji);
+    
+    // Find the emoji search input in Notion's emoji picker
+    const emojiInput = document.querySelector('.notion-record-icon.notranslate[role="button"]').querySelector('div > div > span');
+    if (emojiInput) {
+        // Set the emoji as the input value
+        emojiInput.innerText = emoji;
+        console.log('New emoji was setted!');
+        return true;
+    }
+    
+    console.log('Emoji input not found');
+    return false;
+}
+
 // Function to find and attach listener to the emoji button
 function findAndAttachToEmojiButton() {
     // Find all elements with role="button"
