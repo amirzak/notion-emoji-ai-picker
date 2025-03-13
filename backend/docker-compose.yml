@@ -3,10 +3,11 @@ version: '3.8'
 services:
   notion-emoji-backend:
     image: notion-emoji-backend:latest
+    platform: linux/arm64
     ports:
       - "5001:5001"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    env_file:
+      - .env
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001"]

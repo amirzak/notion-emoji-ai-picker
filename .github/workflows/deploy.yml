@@ -23,6 +23,7 @@ jobs:
           context: ./backend
           load: true
           tags: notion-emoji-backend:latest
+          platforms: linux/arm64
 
       - name: Save Docker image
         run: docker save notion-emoji-backend:latest > image.tar
@@ -37,10 +38,10 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Copy image to VPS
+      - name: Copy files to VPS
         run: |
           scp image.tar ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USER }}/notion-emoji-backend/
-          scp backend/docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USER }}/notion-emoji-backend/
+          scp backend/docker-compose.yml backend/Dockerfile ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USER }}/notion-emoji-backend/
 
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.2.2
