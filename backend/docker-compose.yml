@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   notion-emoji-backend:
+    image: notion-emoji-backend:latest
     ports:
       - "5001:5001"
     environment:
