@@ -50,7 +50,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/${{ secrets.VPS_USER }}/notion-emoji-backend
-            echo "${{ secrets.OPENAI_API_KEY }}" > .env
+            echo 'OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"' > .env
             docker load < image.tar
             docker compose down
             docker compose up -d 
