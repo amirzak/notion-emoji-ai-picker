@@ -1,6 +1,69 @@
 # Notion Emoji AI Picker
 
-A Chrome extension that automatically suggests emojis for your Notion pages based on their titles using OpenAI's GPT-3.5 API.
+A Chrome extension that uses AI to suggest relevant emojis for your Notion pages.
+
+## Project Structure
+
+```
+notion-emoji-ai-picker/
+├── backend/              # Flask server for handling OpenAI requests
+│   ├── server.py        # Main Flask application
+│   ├── requirements.txt # Python dependencies
+│   └── .env            # Environment variables (OpenAI API key)
+│
+└── extension/           # Chrome extension files
+    ├── popup.html      # Extension popup UI
+    └── popup.js        # Extension popup logic
+```
+
+## Setup
+
+### Backend Setup
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Create a `.env` file with your OpenAI API key:
+   ```
+   OPENAI_API_KEY=your_api_key_here
+   ```
+
+4. Run the Flask server:
+   ```bash
+   python server.py
+   ```
+
+The server will run on `http://localhost:5000`.
+
+### Extension Setup
+
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" in the top right
+3. Click "Load unpacked" and select the `extension` directory
+
+## Usage
+
+1. Make sure the Flask backend is running
+2. Navigate to any Notion page
+3. Click the extension icon in your browser
+4. Select one of the AI-suggested emojis for your page
+
+## Development
+
+- Backend: Flask server handles OpenAI API requests and emoji suggestions
+- Frontend: Chrome extension communicates with both Notion and the backend server
+- API: Single endpoint `/getEmojiSuggestion` for emoji suggestions
+
+## Security Note
+
+The OpenAI API key is stored securely in the backend `.env` file and is never exposed to the frontend.
 
 ## Features
 
@@ -17,19 +80,6 @@ A Chrome extension that automatically suggests emojis for your Notion pages base
 4. Click "Load unpacked" and select the directory containing this extension
 5. When prompted, enter your OpenAI API key
    - If you need an API key, get one from [OpenAI's website](https://platform.openai.com/api-keys)
-
-## Usage
-
-1. Open any Notion page
-2. Click the "Add icon" button (the emoji button at the top of the page)
-3. The extension will automatically show 5 AI-suggested emojis based on your page title
-4. Click any suggested emoji to use it
-
-## Requirements
-
-- A valid OpenAI API key
-- Google Chrome browser
-- Access to Notion
 
 ## Privacy
 

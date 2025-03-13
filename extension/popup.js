@@ -29,9 +29,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             console.log('Received page title:', titleResponse.pageTitle);
             
-            // Get emoji suggestions from AI using the page title
+            // Get emoji suggestions from backend
             console.log('Getting emoji suggestions for title:', titleResponse.pageTitle);
-            const suggestions = await getEmojiSuggestion(titleResponse.pageTitle);
+            const response = await fetch('http://localhost:5001/getEmojiSuggestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: titleResponse.pageTitle
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get emoji suggestions');
+            }
+
+            const data = await response.json();
+            const suggestions = data.emojis;
             console.log('Received emoji suggestions:', suggestions);
             
             // Clear loading state and create emoji buttons
@@ -69,51 +84,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
-
-const OPENAI_API_KEY = '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';
-
-const emojiSuggestionLlm = `You are a top-notch Notion expert specialized in selecting emojis for Notion pages based on their titles. Your task is to provide 3 emoji suggestions for a given Notion page title.
-
-# Instructions
-
-1. The user will supply a title of a Notion page.
-2. Based on the provided title, suggest three emojis that best fit the theme or tone of the title.
-3. Provide only the emoji suggestions as outputs.
-4. Each emoji suggestion must be on a separate line.
-5. Do not include any additional text other than the emoji suggestions themselves.
-
-# Output Format
-
-- The output should consist solely of three emojis, each on its own line. Do not include any extra words or explanations alongside the emojis.
-
-Please ensure your responses adhere strictly to these guidelines.
-`
-
-async function getEmojiSuggestion(title) {
-    console.log('Making OpenAI API request for title:', title);
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [{
-                role: 'developer',
-                content: emojiSuggestionLlm,
-            },
-            {
-                role: 'user',
-                content: title
-            }
-            ],
-        })
-    });
-
-    const data = await response.json();
-    console.log('OpenAI API response:', data);
-    const emojis = data.choices[0].message.content.split('\n');
-    console.log('Parsed emojis:', emojis);
-    return emojis;
-}
