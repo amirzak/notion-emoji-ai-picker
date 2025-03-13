@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Get emoji suggestions from backend
             console.log('Getting emoji suggestions for title:', titleResponse.pageTitle);
-            const response = await fetch('http://localhost:5001/getEmojiSuggestion', {
+            const response = await fetch('https://notionemoji.com/api/getEmojiSuggestion', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
