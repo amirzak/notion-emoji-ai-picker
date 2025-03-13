@@ -9,7 +9,9 @@
     "tabs"
   ],
   "host_permissions": [
-    "https://*.notion.so/*"
+    "https://*.notion.so/*",
+    "http://localhost:5001/*",
+    "https://notionemoji.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

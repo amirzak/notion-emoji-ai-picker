@@ -1,0 +1,56 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and export Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          load: true
+          tags: notion-emoji-backend:latest
+
+      - name: Save Docker image
+        run: docker save notion-emoji-backend:latest > image.tar
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy image to VPS
+        run: |
+          scp image.tar ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USER }}/notion-emoji-backend/
+          scp backend/docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USER }}/notion-emoji-backend/
+
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/${{ secrets.VPS_USER }}/notion-emoji-backend
+            echo "${{ secrets.OPENAI_API_KEY }}" > .env
+            docker load < image.tar
+            docker-compose down
+            docker-compose up -d 
