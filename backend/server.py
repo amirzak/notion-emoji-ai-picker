@@ -91,7 +91,8 @@ def get_emoji_suggestion():
             messages=[
                 {"role": "system", "content": EMOJI_SUGGESTION_PROMPT},
                 {"role": "user", "content": title}
-            ]
+            ],
+            temperature=0.2
         )
         
         emojis = response.choices[0].message.content.strip().split('\n')
