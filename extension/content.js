@@ -101,7 +101,7 @@ async function insertEmoji(emoji) {
 
 function getPageTitle() {
     console.log("getPageTitle called");
-    const titleElement = document.querySelector('h1[placeholder="New page"]').textContent;
+    const titleElement = document.querySelector('h1[placeholder="New page"], h1[placeholder="Untitled"]').textContent;
     console.log(`Notion page title: "${titleElement}"`)
     return titleElement;
 }
