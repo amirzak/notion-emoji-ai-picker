@@ -33,41 +33,70 @@ function findEmojiFilterInput() {
     return null;
 }
 
+function waitForElement(selector, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+                observer.disconnect();
+                resolve(element);
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        setTimeout(() => {
+            observer.disconnect();
+            reject(new Error(`Timeout waiting for element: ${selector}`));
+        }, timeout);
+    });
+}
+
 async function insertEmoji(emoji) {
-    const changeEmojiButton = findChangeEmojiButton();
-    if (!changeEmojiButton) {
-        console.log('Could not find change emoji button');
+    try {
+        const changeEmojiButton = findChangeEmojiButton();
+        if (!changeEmojiButton) {
+            console.log('Could not find change emoji button');
+            return false;
+        }
+        changeEmojiButton.click();
+
+        // Wait for emoji picker container and hide it
+        const emojiPickerContainer = await waitForElement("#notion-app > div > div.notion-overlay-container.notion-default-overlay-container > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(2) > div > div > div > div");
+        emojiPickerContainer.style.opacity = '0';
+        console.log('Changed opacity to zero');
+
+        // Wait for filter input
+        const filterInputButton = await waitForElement('input[placeholder="Filter…"]');
+        filterInputButton.focus();
+
+        const eventOptions = { bubbles: true, cancelable: true, key: emoji, emoji };
+        filterInputButton.dispatchEvent(new KeyboardEvent("keydown", eventOptions));
+        filterInputButton.value += emoji;
+        filterInputButton.dispatchEvent(new Event("input", { bubbles: true }));
+        filterInputButton.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
+        filterInputButton.dispatchEvent(new Event("change", { bubbles: true }));
+
+        // Wait for emoji grid and click the first emoji
+        const emojiGrid = await waitForElement('div[role="gridcell"]');
+        const emojiSpan = emojiGrid.querySelector('span[role="img"]');
+        if (!emojiSpan) {
+            throw new Error('Could not find emoji span within grid cell');
+        }
+        emojiSpan.click();
+
+        return true;
+    } catch (error) {
+        console.error('Error in insertEmoji:', error);
         return false;
     }
-    changeEmojiButton.click();
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    const filterInputButton = findEmojiFilterInput();
-    if (!filterInputButton) {
-        console.log('Could not find filter input');
-        return false;
-    }
-
-    filterInputButton.focus();
-
-    const eventOptions = { bubbles: true, cancelable: true, key: emoji, emoji };
-    filterInputButton.dispatchEvent(new KeyboardEvent("keydown", eventOptions));
-    filterInputButton.value += emoji;
-    filterInputButton.dispatchEvent(new Event("input", { bubbles: true }));
-    filterInputButton.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    filterInputButton.dispatchEvent(new Event("change", { bubbles: true }));
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    const emojiGrid = document.querySelector('div[role="gridcell"]');
-    const emojiSpan = emojiGrid.querySelector('span[role="img"]');
-    emojiSpan.click();
-
-    return true;
 }
 
 function getPageTitle() {
