@@ -4,6 +4,7 @@ from openai import OpenAI
 import os
 import logging
 from dotenv import load_dotenv
+from functools import wraps
 
 # Configure logging
 logging.basicConfig(
@@ -20,11 +21,28 @@ ALLOWED_ORIGINS = [
     "chrome-extension://gbijifpphcmddbadllbgdeighondenik"
 ]
 
+def check_origin():
+    origin = request.headers.get('Origin')
+    if not origin or origin not in ALLOWED_ORIGINS:
+        logger.warning(f"Blocked request from unauthorized origin: {origin}")
+        return jsonify({'error': 'Unauthorized origin'}), 403
+    return None
+
+def require_origin(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        error_response = check_origin()
+        if error_response:
+            return error_response
+        return f(*args, **kwargs)
+    return decorated_function
+
 CORS(app, resources={
     r"/*": {
         "origins": ALLOWED_ORIGINS,
         "methods": ["POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "allow_headers": ["Content-Type", "Origin"],
+        "supports_credentials": True
     }
 })
 
@@ -54,6 +72,7 @@ EMOJI_SUGGESTION_PROMPT = """You are a top-notch Notion expert specialized in se
 Please ensure your responses adhere strictly to these guidelines."""
 
 @app.route('/getEmojiSuggestion', methods=['POST'])
+@require_origin
 def get_emoji_suggestion():
     try:
         logger.info("Received emoji suggestion request")
@@ -87,6 +106,10 @@ def get_emoji_suggestion():
 @app.after_request
 def after_request(response):
     logger.info(f"Response status: {response.status}")
+    if not request.headers.get('Origin') in ALLOWED_ORIGINS:
+        # If not from allowed origin, clear CORS headers
+        response.headers.pop('Access-Control-Allow-Origin', None)
+        response.headers.pop('Access-Control-Allow-Credentials', None)
     return response
 
 if __name__ == '__main__':
