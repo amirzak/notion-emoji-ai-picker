@@ -1,30 +1,25 @@
 // When the popup loads
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Popup loaded');
+    const loadingContainer = document.querySelector('.loading-container');
+    const errorContainer = document.querySelector('.error-container');
     const emojiGrid = document.querySelector('.emoji-grid');
     
-    // First, show loading state
-    emojiGrid.innerHTML = `
-        <div style="grid-column: span 5; text-align: center; padding: 20px;">
-            <div style="display: inline-block; width: 24px; height: 24px; border: 3px solid #f3f3f3; 
-                 border-top: 3px solid #2196f3; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <div style="margin-top: 12px;">Finding perfect emojis...</div>
-        </div>
-        <style>
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        </style>
-    `;
-    
-    // Get the page title from content script
-    chrome.tabs.query({active: true, currentWindow: true}, async (tabs) => {
-        console.log('Got active tab:', tabs[0].id);
+    try {
+        // Get the current tab
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        
+        // Check if we're on a Notion page
+        if (!tab.url.includes('notion.so')) {
+            loadingContainer.classList.remove('visible');
+            errorContainer.classList.add('visible');
+            return;
+        }
+
         try {
             // Get page title first
             console.log('Requesting page title...');
-            const titleResponse = await chrome.tabs.sendMessage(tabs[0].id, {
+            const titleResponse = await chrome.tabs.sendMessage(tab.id, {
                 action: 'getPageTitle'
             });
             console.log('Received page title:', titleResponse.pageTitle);
@@ -49,8 +44,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const suggestions = data.emojis;
             console.log('Received emoji suggestions:', suggestions);
             
-            // Clear loading state and create emoji buttons
-            emojiGrid.innerHTML = '';
+            // Hide loading, show emoji grid
+            loadingContainer.classList.remove('visible');
+            emojiGrid.classList.add('visible');
+            
+            // Create emoji buttons
             suggestions.forEach(emoji => {
                 console.log('Creating button for emoji:', emoji);
                 const button = document.createElement('button');
@@ -59,14 +57,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 button.addEventListener('click', () => {
                     console.log('Emoji button clicked:', emoji);
-                    // Send the emoji to the content script
-                    chrome.tabs.sendMessage(tabs[0].id, {
+                    chrome.tabs.sendMessage(tab.id, {
                         action: 'insertEmoji',
                         emoji: emoji.trim()
                     });
                     console.log('Sent emoji to content script');
-                    
-                    // Close the popup
                     window.close();
                 });
                 
@@ -74,13 +69,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         } catch (error) {
             console.error('Error in popup:', error);
-            emojiGrid.innerHTML = `
-                <div style="grid-column: span 5; text-align: center; padding: 20px;">
-                    <div style="color: #e53935; font-size: 24px; margin-bottom: 8px;">⚠️</div>
-                    <div style="color: #e53935; font-weight: 500; margin-bottom: 8px;">Unable to load suggestions</div>
-                    <div style="font-size: 13px; color: #666;">Please make sure you're on a Notion page</div>
-                </div>
-            `;
+            loadingContainer.classList.remove('visible');
+            errorContainer.classList.add('visible');
+            errorContainer.querySelector('.error-title').textContent = 'Unable to Load Suggestions';
+            errorContainer.querySelector('.error-message').innerHTML = 'Please make sure you\'re on a Notion page<br>and try again.';
         }
-    });
+    } catch (error) {
+        console.error('Error checking tab:', error);
+        loadingContainer.classList.remove('visible');
+        errorContainer.classList.add('visible');
+    }
 });

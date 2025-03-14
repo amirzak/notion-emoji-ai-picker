@@ -11,6 +11,7 @@
       --shadow-color: rgba(0, 0, 0, 0.1);
       --text-color: #37352f;
       --background-color: #ffffff;
+      --error-color: #e53935;
     }
     
     body {
@@ -25,7 +26,7 @@
     .container {
       display: flex;
       flex-direction: column;
-      height: 100%;
+      min-height: 320px;
     }
     
     .header {
@@ -48,20 +49,23 @@
     }
     
     .content {
-      padding: 16px;
+      flex: 1;
       display: flex;
-      justify-content: center;
       align-items: center;
-      flex-grow: 1;
-      width: 100%;
-      box-sizing: border-box;
+      justify-content: center;
+      padding: 24px 16px;
+      position: relative;
     }
     
     .emoji-grid {
-      display: grid;
+      display: none;
       grid-template-columns: repeat(3, 48px);
       gap: 12px;
       justify-content: center;
+    }
+    
+    .emoji-grid.visible {
+      display: grid;
     }
     
     .emoji-button {
@@ -99,6 +103,74 @@
       text-align: center;
       border-top: 1px solid var(--border-color);
     }
+
+    .error-container {
+      display: none;
+      text-align: center;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      padding: 0 24px;
+      box-sizing: border-box;
+    }
+
+    .error-container.visible {
+      display: block;
+    }
+
+    .error-icon {
+      font-size: 32px;
+      color: var(--error-color);
+      margin-bottom: 12px;
+    }
+
+    .error-title {
+      color: var(--error-color);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .error-message {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .loading-container {
+      display: none;
+      text-align: center;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+    }
+
+    .loading-container.visible {
+      display: block;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -108,9 +180,19 @@
       <h1 class="header-title">Notion Emoji Picker</h1>
     </div>
     <div class="content">
-      <div class="emoji-grid">
-        <!-- Emojis will be added here dynamically -->
+      <div class="loading-container visible">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Finding perfect emojis...</div>
       </div>
+      <div class="error-container">
+        <div class="error-icon">⚠️</div>
+        <div class="error-title">Not a Notion Page</div>
+        <div class="error-message">
+          This extension only works on Notion pages.<br>
+          Please navigate to a Notion page and try again.
+        </div>
+      </div>
+      <div class="emoji-grid"></div>
     </div>
     <div class="footer">
       AI-powered emoji suggestions for Notion
