@@ -15,7 +15,18 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+
+ALLOWED_ORIGINS = [
+    "chrome-extension://gbijifpphcmddbadllbgdeighondenik"
+]
+
+CORS(app, resources={
+    r"/*": {
+        "origins": ALLOWED_ORIGINS,
+        "methods": ["POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
@@ -24,6 +35,7 @@ client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 logger.info("Starting Notion Emoji AI Picker server")
 logger.info(f"Environment: {os.getenv('FLASK_ENV', 'development')}")
 logger.info(f"OpenAI API Key configured: {'Yes' if os.getenv('OPENAI_API_KEY') else 'No'}")
+logger.info(f"CORS allowed origins: {ALLOWED_ORIGINS}")
 
 EMOJI_SUGGESTION_PROMPT = """You are a top-notch Notion expert specialized in selecting emojis for Notion pages based on their titles. Your task is to provide 3 emoji suggestions for a given Notion page title.
 
