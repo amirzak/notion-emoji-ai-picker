@@ -1,29 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "Notion Emoji Picker",
-  "version": "1.0",
-  "description": "Quick emoji picker for Notion pages",
+  "name": "AI Emoji Suggester for Notion",
+  "version": "0.0.1",
+  "description": "AI-powered emoji suggestions for Notion pages. Instantly get the best suggestions and insert the perfect emoji with one click!",
+  "icons": {
+    "48": "icons/notion_emoji_48.png",
+    "128": "icons/notion_emoji_128.png"
+  },
   "permissions": [
     "activeTab",
-    "scripting",
     "tabs"
   ],
   "host_permissions": [
-    "https://*.notion.so/*",
-    "http://localhost:5001/*",
-    "https://notionemoji.com/*"
+    "https://*.notion.so/*"
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Notion Emoji Picker"
+    "default_title": "AI Emoji Suggester for Notion"
   },
   "content_scripts": [
     {
       "matches": ["https://*.notion.so/*"],
       "js": ["content.js"]
     }
-  ],
-  "background": {
-    "service_worker": "background.js"
-  }
+  ]
 } 
