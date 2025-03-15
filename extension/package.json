@@ -1,0 +1,16 @@
+{
+  "name": "ai-emoji-suggester-for-notion",
+  "version": "0.0.1",
+  "description": "AI-powered emoji suggestions for Notion pages",
+  "scripts": {
+    "build": "node build.js",
+    "build:dev": "node build.js --dev",
+    "watch": "node build.js --dev --watch"
+  },
+  "keywords": ["notion", "emoji", "chrome-extension", "ai"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.20.1"
+  }
+}
