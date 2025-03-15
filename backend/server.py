@@ -18,7 +18,8 @@ load_dotenv()
 app = Flask(__name__)
 
 ALLOWED_ORIGINS = [
-    "chrome-extension://gbijifpphcmddbadllbgdeighondenik"
+    "chrome-extension://gbijifpphcmddbadllbgdeighondenik",
+    "chrome-extension://johloamompffphdldnmoegjimocmlceo"
 ]
 
 def check_origin():
