@@ -19,7 +19,8 @@ app = Flask(__name__)
 
 ALLOWED_ORIGINS = [
     "chrome-extension://gbijifpphcmddbadllbgdeighondenik",
-    "chrome-extension://johloamompffphdldnmoegjimocmlceo"
+    "chrome-extension://johloamompffphdldnmoegjimocmlceo",
+    "chrome-extenstion://dnmoocnccbiheflkodglkhibicigbegf"
 ]
 
 def check_origin():
