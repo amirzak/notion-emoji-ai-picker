@@ -93,7 +93,7 @@ async function insertEmoji(emoji) {
 
         // Wait for emoji grid and click the first emoji
         const emojiGrid = await waitForElement('div[role="gridcell"]');
-        const emojiSpan = emojiGrid.querySelector('span[role="img"]');
+        const emojiSpan = emojiGrid.querySelector('span[role="img"], img[class="notion-emoji"]');
         if (!emojiSpan) {
             throw new Error('Could not find emoji span within grid cell');
         }
