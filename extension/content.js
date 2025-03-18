@@ -70,8 +70,15 @@ async function insertEmoji(emoji) {
 
         // Wait for emoji picker container and hide it
         const emojiPickerContainer = await waitForElement("#notion-app > div > div.notion-overlay-container.notion-default-overlay-container > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(2) > div > div > div > div");
+        console.log('Found emoji picker conttainer');
         emojiPickerContainer.style.opacity = '0';
         console.log('Changed opacity to zero');
+
+        const emojiTab = emojiPickerContainer.querySelector('div[role="tab"][tabindex="0"]');
+        if (emojiTab.textContent === 'Emoji') {
+            emojiTab.click();
+            console.log('Clicked emoji tab button');
+        }
 
         // Wait for filter input
         const filterInputButton = await waitForElement('input[placeholder="Filter…"]');
