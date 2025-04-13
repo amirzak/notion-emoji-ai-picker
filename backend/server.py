@@ -21,7 +21,8 @@ ALLOWED_ORIGINS = [
     "chrome-extension://gbijifpphcmddbadllbgdeighondenik",
     "chrome-extension://johloamompffphdldnmoegjimocmlceo",
     "chrome-extension://dnmoocnccbiheflkodglkhibicigbegf",
-    "chrome-extension://lnhbdkklodnblminiofelpafmnglpomo"
+    "chrome-extension://lnhbdkklodnblminiofelpafmnglpomo",
+    "chrome-extension://penijlekcjidkpeacjbkcngddbibhjcj"
 ]
 
 def check_origin():
