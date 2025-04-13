@@ -71,6 +71,7 @@ async function insertEmoji(emoji) {
         // Wait for emoji picker container and hide it
         const emojiPickerContainer = await waitForElement("#notion-app > div > div.notion-overlay-container.notion-default-overlay-container > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(2) > div > div > div > div");
         console.log('Found emoji picker conttainer');
+        console.log('Current opacity:', emojiPickerContainer.style.opacity);
         emojiPickerContainer.style.opacity = '0';
         console.log('Changed opacity to zero');
 
@@ -90,14 +91,26 @@ async function insertEmoji(emoji) {
         filterInputButton.dispatchEvent(new Event("input", { bubbles: true }));
         filterInputButton.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
         filterInputButton.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log('Typed in emoji in the filter tab');
 
         // Wait for emoji grid and click the first emoji
         const emojiGrid = await waitForElement('div[role="gridcell"]');
-        const emojiSpan = emojiGrid.querySelector('span[role="img"], img[class="notion-emoji"]');
+        const emojiSpan = emojiGrid.querySelector('span[role="img"], img[class="notion-emoji"], span');
         if (!emojiSpan) {
             throw new Error('Could not find emoji span within grid cell');
         }
+
         emojiSpan.click();
+        console.log('Clicked emoji');  
+
+        const emojiPickerContainerBug = await waitForElement("#notion-app > div > div.notion-overlay-container.notion-default-overlay-container > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(2) > div > div > div > div");
+        if (emojiPickerContainerBug) {
+            console.log('emoji picker poped again');
+            const background = document.querySelector("#notion-app > div > div.notion-overlay-container.notion-default-overlay-container > div:nth-child(2) > div > div > div:nth-child(1)");
+            background.click();
+            console.log('Clicked background'); 
+        }
+ 
 
         return true;
     } catch (error) {
@@ -108,7 +121,7 @@ async function insertEmoji(emoji) {
 
 function getPageTitle() {
     console.log("getPageTitle called");
-    const titleElement = document.querySelector('h1[placeholder="New page"], h1[placeholder="Untitled"]').textContent;
+    const titleElement = document.querySelector('h1[placeholder="New page"], h1[placeholder="Untitled"], h1[placeholder="New table"], h1[placeholder="New list"]').textContent;
     console.log(`Notion page title: "${titleElement}"`)
     return titleElement;
 }

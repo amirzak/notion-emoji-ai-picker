@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Emoji Suggester for Notion",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "AI-powered emoji suggestions for Notion pages. Instantly get the best suggestions and insert the perfect emoji with one click!",
   "icons": {
     "48": "icons/notion_emoji_48.png",

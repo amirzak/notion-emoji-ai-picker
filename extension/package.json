@@ -1,6 +1,6 @@
 {
   "name": "ai-emoji-suggester-for-notion",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "AI-powered emoji suggestions for Notion pages",
   "scripts": {
     "build": "node build.js",
