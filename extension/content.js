@@ -1,189 +1,53 @@
-function findChangeEmojiButton() {
-    // Try to find "Change page icon" button first
-    const pageIconButtons = document.querySelectorAll('div.notion-record-icon[role="button"]');
-    for (const button of pageIconButtons) {
-        if (button.getAttribute('aria-label')?.includes('Change page icon')) {
-            console.log('Found "Change icon" button');
-            return button;
-        }
-    }
-
-    // If not found, try to find "Add icon" button
-    const buttons = document.querySelectorAll('div[role="button"]');
-    for (const button of buttons) {
-        if (button.textContent.includes('Add icon')) {
-            console.log('Found "Add icon" button:', button.textContent);
-            return button;
-        }
-    }
-
-    console.log('No emoji button found');
-    return null;
-}
-
-function findEmojiFilterInput() {
-    const filterInput = document.querySelector('input[placeholder="Filter…"]');
-    
-    if (filterInput) {
-        console.log('Found emoji filter input');
-        return filterInput;
-    }
-    
-    console.log('Could not find emoji filter input');
-    return null;
-}
-
-function waitForEmojiPickerDialog(timeout = 5000) {
-    return new Promise((resolve, reject) => {
-        const findEmojiPicker = () => {
-            const dialogs = document.querySelectorAll('[role="dialog"]');
-            for (const dialog of dialogs) {
-                if (dialog.querySelector('[role="tab"]') && dialog.querySelector('[role="gridcell"]')) {
-                    return dialog;
-                }
-            }
-            return null;
-        };
-
-        const existingPicker = findEmojiPicker();
-        if (existingPicker) {
-            return resolve(existingPicker);
-        }
-
-        const observer = new MutationObserver(() => {
-            const picker = findEmojiPicker();
-            if (picker) {
-                observer.disconnect();
-                resolve(picker);
-            }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        setTimeout(() => {
-            observer.disconnect();
-            reject(new Error('Timeout waiting for emoji picker dialog'));
-        }, timeout);
-    });
-}
-
-function waitForElement(selector, timeout = 5000) {
-    return new Promise((resolve, reject) => {
-        if (document.querySelector(selector)) {
-            return resolve(document.querySelector(selector));
-        }
-
-        const observer = new MutationObserver(() => {
-            const element = document.querySelector(selector);
-            if (element) {
-                observer.disconnect();
-                resolve(element);
-            }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        setTimeout(() => {
-            observer.disconnect();
-            reject(new Error(`Timeout waiting for element: ${selector}`));
-        }, timeout);
-    });
-}
-
-async function insertEmoji(emoji) {
+async function insertEmojiViaAPI(emoji) {
     try {
-        const changeEmojiButton = findChangeEmojiButton();
-        if (!changeEmojiButton) {
-            console.log('Could not find change emoji button');
+        const pageId = window.location.pathname.split('-').pop();
+        if (!pageId) {
+            console.error('Could not extract page ID from URL');
             return false;
         }
-        changeEmojiButton.click();
 
-        const emojiPickerDialog = await waitForEmojiPickerDialog();
-        console.log('Found emoji picker dialog');
-        console.log('Current opacity:', emojiPickerDialog.style.opacity);
-        emojiPickerDialog.style.opacity = '0';
-        console.log('Changed opacity to zero');
+        const formattedPageId = pageId.replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, '$1-$2-$3-$4-$5');
+        console.log('Page ID:', formattedPageId);
 
-        const emojiTab = emojiPickerDialog.querySelector('div[role="tab"][tabindex="0"]');
-        if (emojiTab && emojiTab.textContent === 'Emoji') {
-            emojiTab.click();
-            console.log('Clicked emoji tab button');
-        }
-
-        const filterInputButton = emojiPickerDialog.querySelector('[role="combobox"]');
-        if (!filterInputButton) {
-            throw new Error('Could not find filter input');
-        }
-        filterInputButton.focus();
-
-        const eventOptions = { bubbles: true, cancelable: true, key: emoji, emoji };
-        filterInputButton.dispatchEvent(new KeyboardEvent("keydown", eventOptions));
-        filterInputButton.value += emoji;
-        filterInputButton.dispatchEvent(new Event("input", { bubbles: true }));
-        filterInputButton.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
-        filterInputButton.dispatchEvent(new Event("change", { bubbles: true }));
-        console.log('Typed in emoji in the filter tab');
-
-        // Wait for emoji grid and click the first emoji
-        const emojiGrid = await waitForElement('div[role="gridcell"]');
-        const emojiSpan = emojiGrid.querySelector('span[role="img"], img[class="notion-emoji"], span');
-        if (!emojiSpan) {
-            throw new Error('Could not find emoji span within grid cell');
-        }
-
-        emojiSpan.click();
-        console.log('Clicked emoji');
-        
-        emojiPickerDialog.style.display = 'none';
-        console.log('Hid emoji picker immediately');
-
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        const stillOpenDialog = Array.from(document.querySelectorAll('[role="dialog"]')).find(d => 
-            d.querySelector('[role="tab"]') && d.querySelector('[role="gridcell"]')
-        );
-        
-        if (stillOpenDialog) {
-            console.log('Emoji picker still open, attempting to close it properly');
-            
-            const overlayContainer = document.querySelector('.notion-overlay-container');
-            if (overlayContainer) {
-                const allDivs = overlayContainer.querySelectorAll('div');
-                let clickedBackground = false;
-                
-                for (const div of allDivs) {
-                    const style = window.getComputedStyle(div);
-                    if (style.position === 'fixed' && 
-                        style.inset === '0px' && 
-                        !div.contains(stillOpenDialog)) {
-                        console.log('Found overlay background, clicking it');
-                        div.click();
-                        clickedBackground = true;
-                        break;
-                    }
+        const requestBody = {
+            requestId: crypto.randomUUID(),
+            transactions: [
+                {
+                    id: crypto.randomUUID(),
+                    spaceId: null,
+                    operations: [
+                        {
+                            id: formattedPageId,
+                            table: 'block',
+                            path: ['format', 'page_icon'],
+                            command: 'set',
+                            args: emoji
+                        }
+                    ]
                 }
-                
-                if (!clickedBackground) {
-                    console.log('Could not find overlay background, trying Escape key');
-                    stillOpenDialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true }));
-                }
-            } else {
-                console.log('No overlay container found, trying Escape key');
-                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true }));
-            }
-        }
- 
+            ]
+        };
 
+        console.log('Sending API request:', JSON.stringify(requestBody, null, 2));
+
+        const response = await fetch('https://www.notion.so/api/v3/saveTransactionsMain', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            console.error('API request failed:', response.status, await response.text());
+            return false;
+        }
+
+        console.log('Successfully updated emoji via API');
         return true;
     } catch (error) {
-        console.error('Error in insertEmoji:', error);
+        console.error('Error in insertEmojiViaAPI:', error);
         return false;
     }
 }
@@ -198,14 +62,15 @@ function getPageTitle() {
 
 
 // Listen for messages from the popup
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, _sender, sendResponse) => {
     if (message.action === 'insertEmoji') {
-        const success = await insertEmoji(message.emoji);
+        const success = await insertEmojiViaAPI(message.emoji);
         sendResponse({ success });
     }
+    return true;
 })
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, _sender, sendResponse) => {
     if (message.action === 'getPageTitle') {
         const pageTitle = getPageTitle();
         sendResponse({ pageTitle });

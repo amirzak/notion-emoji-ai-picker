@@ -103,6 +103,25 @@
       text-align: center;
       border-top: 1px solid var(--border-color);
     }
+    
+    .footer-text {
+      margin-bottom: 8px;
+    }
+    
+    .coffee-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    
+    .coffee-link:hover {
+      color: #1976d2;
+      text-decoration: underline;
+    }
 
     .error-container {
       display: none;
@@ -195,7 +214,11 @@
       <div class="emoji-grid"></div>
     </div>
     <div class="footer">
-      Enhance your Notion pages with AI-powered emoji magic 🪄
+      <div class="footer-text">Enhance your Notion pages with AI-powered emoji magic 🪄</div>
+      <a href="https://buymeacoffee.com/amirzak" target="_blank" class="coffee-link">
+        <span>☕</span>
+        <span>Buy me a coffee</span>
+      </a>
     </div>
   </div>
   <script src="popup.js"></script>
