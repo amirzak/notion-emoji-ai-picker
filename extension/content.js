@@ -139,23 +139,44 @@ async function insertEmoji(emoji) {
         }
 
         emojiSpan.click();
-        console.log('Clicked emoji');  
+        console.log('Clicked emoji');
+        
+        emojiPickerDialog.style.display = 'none';
+        console.log('Hid emoji picker immediately');
 
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         const stillOpenDialog = Array.from(document.querySelectorAll('[role="dialog"]')).find(d => 
             d.querySelector('[role="tab"]') && d.querySelector('[role="gridcell"]')
         );
         
         if (stillOpenDialog) {
-            console.log('Emoji picker still open, closing it');
+            console.log('Emoji picker still open, attempting to close it properly');
+            
             const overlayContainer = document.querySelector('.notion-overlay-container');
             if (overlayContainer) {
-                const clickableArea = overlayContainer.querySelector('div[style*="position"]');
-                if (clickableArea) {
-                    clickableArea.click();
-                    console.log('Clicked background to close');
+                const allDivs = overlayContainer.querySelectorAll('div');
+                let clickedBackground = false;
+                
+                for (const div of allDivs) {
+                    const style = window.getComputedStyle(div);
+                    if (style.position === 'fixed' && 
+                        style.inset === '0px' && 
+                        !div.contains(stillOpenDialog)) {
+                        console.log('Found overlay background, clicking it');
+                        div.click();
+                        clickedBackground = true;
+                        break;
+                    }
                 }
+                
+                if (!clickedBackground) {
+                    console.log('Could not find overlay background, trying Escape key');
+                    stillOpenDialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true }));
+                }
+            } else {
+                console.log('No overlay container found, trying Escape key');
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true }));
             }
         }
  
