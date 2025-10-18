@@ -33,6 +33,43 @@ function findEmojiFilterInput() {
     return null;
 }
 
+function waitForEmojiPickerDialog(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        const findEmojiPicker = () => {
+            const dialogs = document.querySelectorAll('[role="dialog"]');
+            for (const dialog of dialogs) {
+                if (dialog.querySelector('[role="tab"]') && dialog.querySelector('[role="gridcell"]')) {
+                    return dialog;
+                }
+            }
+            return null;
+        };
+
+        const existingPicker = findEmojiPicker();
+        if (existingPicker) {
+            return resolve(existingPicker);
+        }
+
+        const observer = new MutationObserver(() => {
+            const picker = findEmojiPicker();
+            if (picker) {
+                observer.disconnect();
+                resolve(picker);
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        setTimeout(() => {
+            observer.disconnect();
+            reject(new Error('Timeout waiting for emoji picker dialog'));
+        }, timeout);
+    });
+}
+
 function waitForElement(selector, timeout = 5000) {
     return new Promise((resolve, reject) => {
         if (document.querySelector(selector)) {
@@ -68,21 +105,22 @@ async function insertEmoji(emoji) {
         }
         changeEmojiButton.click();
 
-        // Wait for emoji picker container and hide it
-        const emojiPickerContainer = await waitForElement("#notion-app > div > div.notion-overlay-container.notion-default-overlay-container > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(2) > div > div > div > div");
-        console.log('Found emoji picker conttainer');
-        console.log('Current opacity:', emojiPickerContainer.style.opacity);
-        emojiPickerContainer.style.opacity = '0';
+        const emojiPickerDialog = await waitForEmojiPickerDialog();
+        console.log('Found emoji picker dialog');
+        console.log('Current opacity:', emojiPickerDialog.style.opacity);
+        emojiPickerDialog.style.opacity = '0';
         console.log('Changed opacity to zero');
 
-        const emojiTab = emojiPickerContainer.querySelector('div[role="tab"][tabindex="0"]');
-        if (emojiTab.textContent === 'Emoji') {
+        const emojiTab = emojiPickerDialog.querySelector('div[role="tab"][tabindex="0"]');
+        if (emojiTab && emojiTab.textContent === 'Emoji') {
             emojiTab.click();
             console.log('Clicked emoji tab button');
         }
 
-        // Wait for filter input
-        const filterInputButton = await waitForElement('input[placeholder="Filter…"]');
+        const filterInputButton = emojiPickerDialog.querySelector('[role="combobox"]');
+        if (!filterInputButton) {
+            throw new Error('Could not find filter input');
+        }
         filterInputButton.focus();
 
         const eventOptions = { bubbles: true, cancelable: true, key: emoji, emoji };
@@ -103,12 +141,22 @@ async function insertEmoji(emoji) {
         emojiSpan.click();
         console.log('Clicked emoji');  
 
-        const emojiPickerContainerBug = await waitForElement("#notion-app > div > div.notion-overlay-container.notion-default-overlay-container > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(2) > div > div > div > div");
-        if (emojiPickerContainerBug) {
-            console.log('emoji picker poped again');
-            const background = document.querySelector("#notion-app > div > div.notion-overlay-container.notion-default-overlay-container > div:nth-child(2) > div > div > div:nth-child(1)");
-            background.click();
-            console.log('Clicked background'); 
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const stillOpenDialog = Array.from(document.querySelectorAll('[role="dialog"]')).find(d => 
+            d.querySelector('[role="tab"]') && d.querySelector('[role="gridcell"]')
+        );
+        
+        if (stillOpenDialog) {
+            console.log('Emoji picker still open, closing it');
+            const overlayContainer = document.querySelector('.notion-overlay-container');
+            if (overlayContainer) {
+                const clickableArea = overlayContainer.querySelector('div[style*="position"]');
+                if (clickableArea) {
+                    clickableArea.click();
+                    console.log('Clicked background to close');
+                }
+            }
         }
  
 
@@ -121,7 +169,8 @@ async function insertEmoji(emoji) {
 
 function getPageTitle() {
     console.log("getPageTitle called");
-    const titleElement = document.querySelector('h1[placeholder="New page"], h1[placeholder="Untitled"], h1[placeholder="New table"], h1[placeholder="New list"]').textContent;
+    let titleElement = document.title;
+    titleElement = titleElement.replace(/^\(\d+\)\s*/, '');
     console.log(`Notion page title: "${titleElement}"`)
     return titleElement;
 }
